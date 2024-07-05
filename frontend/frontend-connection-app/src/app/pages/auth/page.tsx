@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleInfo,
@@ -9,12 +9,14 @@ import {
 import { FormEvent } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import io, { Socket } from "socket.io-client";
 
 const Auth: React.FC = () => {
   const router = useRouter();
   const [userPhoto, setUserPhoto] = useState<string>(
     "https://wp-s.ru/wallpapers/16/17/364199592708062/siluet-xameleona-iz-multika.jpg"
   );
+  const [roomId, setRoomId] = useState<string>("");
 
   const handlePhotoChange = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
@@ -28,6 +30,15 @@ const Auth: React.FC = () => {
     setUserPhoto(avatars[randomIndex]);
   };
 
+  const generateRoomId = () => {
+    const newRoomId = Math.random().toString(36).substr(2, 9);
+    setRoomId(newRoomId);
+  };
+
+  useEffect(() => {
+    generateRoomId();
+  }, []);
+
   const onSubmitAuth = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const form = event.currentTarget;
@@ -40,7 +51,13 @@ const Auth: React.FC = () => {
         userPhoto,
       });
       console.log("Success:", response.data);
-      router.push("/pages/settings");
+
+      localStorage.setItem("userId", response.data.userId)
+
+      if (response) {
+        router.push(`/pages/settings/${roomId}`);
+        console.log();
+      }
     } catch (error) {
       console.error("Error:", error);
     }
@@ -50,8 +67,8 @@ const Auth: React.FC = () => {
     <div className="px-5 py-3">
       <div className="flex justify-between">
         <FontAwesomeIcon icon={faBars} size="2x" />
-        <p className="text-2xl font-bold mt-8">Tem Contact</p>
-        <FontAwesomeIcon icon={faCircleInfo} size="2x" />
+        <p className="text-2xl font-bold mt-8">Word Nerd</p>
+        <FontAwesomeIcon icon={faCircleInfo} className="text-4xl" />
       </div>
       <form action="" onSubmit={onSubmitAuth}>
         <div className="flex flex-col justify-center mt-32 items-center gap-40 relative">
